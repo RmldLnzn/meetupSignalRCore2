@@ -1,0 +1,100 @@
+﻿<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello SignalR - Tech Meet up SignalR .Net Core 2</title>
+
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+
+<body style="margin:10px;">
+
+    <h1>Hello SignalR</h1>
+
+    <label for="Message">Message</label> <input id="Message" style="width:500px;max-width:90%;margin-bottom:15px;display:block;">
+    
+    <input id="SendButton" type="button" value="Say hello" class="btn btn-primary">
+    <input id="ReverseButton" type="button" value="olleh yaS" class="btn btn-dark">
+
+    <ul id="Messages" style="margin-top:20px;"></ul>
+
+
+    <p id="Status">Connecting...</p>
+
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/js/signalR.min.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hello")  //, { transport: signalR.HttpTransportType.LongPolling }
+                .configureLogging(signalR.LogLevel.Information) //.Error .Warning .Trace
+                .build();
+
+            connection.start()
+                .then(function () {
+                    console.log(connection);
+                    console.log(connection.connection.transport.constructor.name);                              
+                    if (connection.connection.transport.constructor.name == "WebSocketTransport") {                        
+                        setTimeout(function () { $("#Status").text(`Connected to the hub (${connection.connection.transport.webSocket.url})`).show(); }, 500);
+                    }
+                    else
+                    {
+                        setTimeout(function () { $("#Status").text(`Connected to the hub. Transport ${connection.connection.transport.constructor.name}`).show(); }, 500);
+                    }
+                })
+                .catch(function (err) {
+                    $("#Status").text(`Error: ${err.toString()}`).show();
+                    return console.error(err.toString());
+                });
+
+            connection.on("HelloFrom", function (message) {
+                $("#Messages").prepend(`<li>${message}</li>`).show();
+            });
+
+            function SendMessage(method, message) {
+                connection.invoke(method, message)
+                    .catch(function (err) {
+                        $("#Status").text(`Error: ${err.toString()}`).show();
+                        console.error(err.toString());
+                    });
+            }
+
+            $("#SendButton").on("click", function (e) {
+                e.preventDefault();
+                var message = CleanMessage($("#Message").val());
+
+                if (message.length != 0) {
+                    SendMessage("SayHello", message);
+                }
+                else
+                {
+                    alert(":( Nothing to say...");
+                }
+            });
+
+            $("#ReverseButton").on("click", function (e) {
+                e.preventDefault();
+                var message = CleanMessage($("#Message").val());
+
+                if (message.length != 0) {
+                    SendMessage("SayolleH", message);
+                }
+                else
+                {
+                    alert(":( ...yas ot gnihtoN");
+                }
+            });
+
+            function CleanMessage(message) {
+                return message.replace(/[`~!@@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+            }
+        })
+    </script>
+</body>
+</html>
