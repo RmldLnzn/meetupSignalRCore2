@@ -11,11 +11,12 @@
 </head>
 
 <body style="margin:10px;">
+    <span class="simple-menu"><a href="/"><img src="img/home.svg" class="home" /></a><a href="HelloSignalR.html" target="_blank"><img src="img/external.svg" class="external" /></a></span>
 
     <h1>Hello SignalR</h1>
 
     <label for="Message">Message</label> <input id="Message" style="width:500px;max-width:90%;margin-bottom:15px;display:block;">
-    
+
     <input id="SendButton" type="button" value="Say hello" class="btn btn-primary">
     <input id="ReverseButton" type="button" value="olleh yaS" class="btn btn-dark">
 
@@ -39,12 +40,11 @@
             connection.start()
                 .then(function () {
                     console.log(connection);
-                    console.log(connection.connection.transport.constructor.name);                              
-                    if (connection.connection.transport.constructor.name == "WebSocketTransport") {                        
+                    console.log(connection.connection.transport.constructor.name);
+                    if (connection.connection.transport.constructor.name == "WebSocketTransport") {
                         setTimeout(function () { $("#Status").text(`Connected to the hub (${connection.connection.transport.webSocket.url})`).show(); }, 500);
                     }
-                    else
-                    {
+                    else {
                         setTimeout(function () { $("#Status").text(`Connected to the hub. Transport ${connection.connection.transport.constructor.name}`).show(); }, 500);
                     }
                 })
@@ -72,8 +72,7 @@
                 if (message.length != 0) {
                     SendMessage("SayHello", message);
                 }
-                else
-                {
+                else {
                     alert(":( Nothing to say...");
                 }
             });
@@ -85,8 +84,7 @@
                 if (message.length != 0) {
                     SendMessage("SayolleH", message);
                 }
-                else
-                {
+                else {
                     alert(":( ...yas ot gnihtoN");
                 }
             });

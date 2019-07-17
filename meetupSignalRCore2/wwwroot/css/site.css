@@ -61,3 +61,16 @@ body {
     max-width: 1200px;
     height: auto;
 }
+
+.simple-menu {
+    float:right;
+}
+.external {
+    width: 20px;
+    height: 20px;
+}
+
+.home {
+    width: 16px;
+    height: 16px;
+}
