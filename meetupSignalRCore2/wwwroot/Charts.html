@@ -28,7 +28,6 @@
 
     <svg id='chartGraph'></svg>
 
-
     <ul id='chartList' style='list-style: none;margin-top:25px'></ul>
 
     <script src="/lib/jquery/dist/jquery.min.js"></script>
@@ -40,7 +39,7 @@
 
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chart")
-                .configureLogging(signalR.LogLevel.Information) //.Error .Warning .Trace
+                .configureLogging(signalR.LogLevel.Information)
                 .build();
 
             connection.start()
