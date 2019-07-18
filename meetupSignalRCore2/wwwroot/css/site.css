@@ -65,12 +65,12 @@ body {
 .simple-menu {
     float:right;
 }
-.external {
+.ico-external {
     width: 20px;
     height: 20px;
 }
 
-.home {
+.ico-home {
     width: 16px;
     height: 16px;
 }

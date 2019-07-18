@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using meetupSignalRCore2.Hubs;
+using meetupSignalRCore2.Services;
+using Microsoft.AspNetCore.SignalR;
+using meetupSignalRCore2.Hubs.Interfaces;
 
 namespace meetupSignalRCore2
 {
@@ -27,6 +30,12 @@ namespace meetupSignalRCore2
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddSingleton(sp =>
+            {
+                var tennisGameService = new TennisGameService("Roger Federer", "Rafael Nadal",
+                                            sp.GetService<IHubContext<TennisHub, ITennisClient>>());
+                return tennisGameService;
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
@@ -51,8 +60,8 @@ namespace meetupSignalRCore2
             app.UseSignalR(routes =>
             {
                 routes.MapHub<HelloHub>("/hello");
-                routes.MapHub<ChartHub>("/chart");
-                routes.MapHub<QuizHub>("/quiz");
+                routes.MapHub<ChartHub>("/chart");              
+                routes.MapHub<TennisHub>("/tennis");
             });
 
             app.UseMvc();

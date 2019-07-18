@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Game - Tech Meet up SignalR .Net Core 2</title>
+
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+    <span class="simple-menu"><a href="/"><img src="img/home.svg" class="ico-home" /></a><a href="TennisGame.html" target="_blank"><img src="img/external.svg" class="ico-external" /></a></span>
+    
+    <h1 class="text-center mb-2">Tennis Game SignalR</h1>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 offset-md-2 col-xs-12">
+                <button type="button" class="btn btn-success" id="pointsEvents">Subscribe to points events</button>
+                <p class="mt-1" id="points"></p>
+            </div>
+            <div class="col-md-4 offset-md-2 col-xs-12">
+                <button type="button" class="btn btn-success" id="gamesEvents">Subscribe to games events</button>
+                <p class="mt-1" id="games"></p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="text-center" id="winner"></h2>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/js/signalR.min.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+
+            var subscriptionStatus = {
+                pointsStatus: false,
+                gamesStatus: false,
+            }
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/tennis")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.start()
+                .then(function () {
+                    startGame();
+                })
+                .catch(function (err) {
+                    return console.error(err.toString());
+                });
+
+            $("#pointsEvents").on("click", function (e) {
+                e.preventDefault();
+                if (subscriptionStatus.pointsStatus === false) {
+                    subscribe("SubscribeToPointsEvents");
+                    $("#pointsEvents").html("Unsubscribe to points events");
+                    subscriptionStatus.pointsStatus = true;
+                }
+                else {
+                    subscribe("UnsubscribeToPointsEvents");
+                    $("#pointsEvents").html("Subscribe to points events");
+                    $("#points").text("");
+                    subscriptionStatus.pointsStatus = false;
+                }
+            });
+
+            $("#gamesEvents").on("click", function (e) {
+                e.preventDefault();
+                if (subscriptionStatus.gamesStatus === false) {
+                    subscribe("SubscribeToGamesEvents");
+                    $("#gamesEvents").html("Unsubscribe to games events");
+                    subscriptionStatus.gamesStatus = true;
+                }
+                else {
+                    subscribe("UnsubscribeToGamesEvents");
+                    $("#gamesEvents").html("Subscribe to games events");
+                    $("#games").text("");
+                    subscriptionStatus.gamesStatus = false;
+                }
+            });
+
+            connection.on("receivePointsEvents", function (message) {
+                $("#points").text(message);
+            });
+
+            connection.on("receiveGamesEvents", function (message) {
+                $("#games").text(message);
+            });
+
+            connection.on("sendFinishGame", function (message) {
+                $("#winner").text(message);
+            });
+
+            function subscribe(method) {
+                connection.invoke(method)
+                    .catch(function (err) {
+                        console.error(err.toString());
+                    });
+            }
+
+            function startGame() {
+                $.get('/api/tennis', function (data) {
+                    console.log(data);
+                });
+            };
+        })
+    </script>
+</body>
+</html>
