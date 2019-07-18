@@ -1,4 +1,4 @@
-﻿using meetupSignalRCore2.Hubs;
+using meetupSignalRCore2.Hubs;
 using meetupSignalRCore2.Hubs.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -17,6 +17,8 @@ namespace meetupSignalRCore2.Services
         private readonly string playerTwo;
         private bool gameStarted;
 
+        private object _syncLock = "lock";
+
         public TennisGameService(string playerOne, string playerTwo, IHubContext<TennisHub, ITennisClient> hubContext)
         {
             this.playerOne = playerOne;
@@ -34,8 +36,8 @@ namespace meetupSignalRCore2.Services
                 games[1] = 0;
                 points[0] = 0;
                 points[1] = 0;
-                _timer = new Timer(SendInformation, null, 1000, 5000);
-                gameStarted = true;            
+                _timer = new Timer(SendInformation, null, 2000, 1000);
+                gameStarted = true;
             }
         }
 
@@ -46,7 +48,8 @@ namespace meetupSignalRCore2.Services
 
         private string GetScore()
         {
-            if (points[0] >= 3 && points[1] >= 3 && Math.Abs(points[0] - points[1]) < 2)
+            if (points[0] >= 3 && points[1] >= 3 && 
+                (Math.Abs(points[0] - points[1]) < 2))
             {
                 if (points[0] == points[1])
                     return "Deuce";
@@ -54,20 +57,20 @@ namespace meetupSignalRCore2.Services
                     return $"Advantage {playerOne}";
                 else
                     return $"Advantage {playerTwo}";
-                }
+            }
 
-                if (points[0] < 4 && points[1] < 4)
-                {
-                    return $"{playerOne} {TranslateScore(points[0])} - {TranslateScore(points[1])} {playerTwo}";
-                }
-                    
-                if (points[0] >= 4)
-                {
-                    var playerOneResult = $"{TranslateScore(points[0])} {playerOne}";
-                    AddGame(playerOne);
-                    return playerOneResult;
-                }
-                
+            if (points[0] < 4 && points[1] < 4)
+            {
+                return $"{playerOne} {TranslateScore(points[0])} - {TranslateScore(points[1])} {playerTwo}";
+            }
+
+            if (points[0] >= 4)
+            {
+                var playerOneResult = $"{TranslateScore(points[0])} {playerOne}";
+                AddGame(playerOne);
+                return playerOneResult;
+            }
+
             var playerTwoResult = $"{TranslateScore(points[1])} {playerTwo}";
             AddGame(playerTwo);
             return playerTwoResult;
@@ -84,7 +87,7 @@ namespace meetupSignalRCore2.Services
             else
             {
                 points[1]++;
-            }            
+            }
         }
 
         private string TranslateScore(int points)
@@ -113,15 +116,17 @@ namespace meetupSignalRCore2.Services
             {
                 games[0]++;
             }
+            else
+            {
+                games[1]++;
+            }
 
-            if (games[0] == 6 & gameStarted == true)
+            if (games[0] >= 6 && games[0]- games[1] >= 2 && gameStarted == true)
             {
                 FinishGame($"{playerOne} won {games[0].ToString()} - {games[1].ToString()}");
             }
 
-            games[1]++;
-
-            if (games[1] == 6 & gameStarted == true)
+            if (games[1] >= 6 && games[1] - games[0] >= 2 && gameStarted == true)
             {
                 FinishGame($"{playerTwo} won {games[1].ToString()} - {games[0].ToString()}");
             }
@@ -129,14 +134,16 @@ namespace meetupSignalRCore2.Services
 
         private void MovePlayer()
         {
-            bool player = new Random().Next(2, 99) % 2 == 0;
+            bool player = new Random().Next(0, 99) % 2 == 0;
 
             if (player)
             {
                 Volley(playerOne);
             }
-
-            Volley(playerTwo);
+            else
+            {
+                Volley(playerTwo);
+            }
         }
 
         private void FinishGame(string result)
@@ -151,11 +158,14 @@ namespace meetupSignalRCore2.Services
         #region SignalR
         private void SendInformation(object state)
         {
-            MovePlayer();
+            lock (_syncLock)
+            {
+                MovePlayer();
 
-            _hubContext.Clients.Group("pointsEventsSubscribers").ReceivePointsEvents(GetScore());
+                _hubContext.Clients.Group("pointsEventsSubscribers").ReceivePointsEvents(GetScore());
 
-            _hubContext.Clients.Group("gamesEventsSubscribers").ReceiveGamesEvents(GetGame());
+                _hubContext.Clients.Group("gamesEventsSubscribers").ReceiveGamesEvents(GetGame());
+            }
         }
 
         private void SendFinishGame(string result)
