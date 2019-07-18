@@ -1,6 +1,6 @@
 # NET-BAIRES Tech Meet Up: SignalR with Core
 
-### Studio de Cognizant Softvision
+### Cognizant Softvision Studio - Buenos Aires - Argentina
 
 Net-Baires and Tech Leads of Cognizant Softvision: Guillermo Murano, Javier Paez & Cristian Pique
 
